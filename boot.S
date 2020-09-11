@@ -1,4 +1,4 @@
-// AArch64 mode
+// AArch32 mode
 
 // To keep this in the first portion of the binary.
 .section ".text.boot"
@@ -6,27 +6,47 @@
 // Make _start global.
 .globl _start
 
-    .org 0x80000
-// Entry point for the kernel. Registers:
-// x0 -> 32 bit pointer to DTB in memory (primary core only) / 0 (secondary cores)
-// x1 -> 0
-// x2 -> 0
-// x3 -> 0
-// x4 -> 32 bit kernel entry point, _start location
+        .org 0x8000
+// Entry point for the kernel.
+// r15 -> should begin execution at 0x8000.
+// r0 -> 0x00000000
+// r1 -> 0x00000C42 - machine id
+// r2 -> 0x00000100 - start of ATAGS
+// preserve these registers as argument for kernel_main
 _start:
-    // set stack before our code
-    ldr     x5, =_start
-    mov     sp, x5
+	// Shut off extra cores
+	mrc p15, 0, r5, c0, c0, 5
+	and r5, r5, #3
+	cmp r5, #0
+	bne halt
 
-    // clear bss
-    ldr     x5, =__bss_start
-    ldr     w6, =__bss_size
-3:  cbz     w6, 4f
-    str     xzr, [x5], #8
-    sub     w6, w6, #1
-    cbnz    w6, 3b
+	// Setup the stack.
+	ldr r5, =_start
+	mov sp, r5
 
-    // jump to C code, should not return
-4:  bl      kernel_main
-    // for failsafe, halt this core too
-    b 1b
+	// Clear out bss.
+	ldr r4, =__bss_start
+	ldr r9, =__bss_end
+	mov r5, #0
+	mov r6, #0
+	mov r7, #0
+	mov r8, #0
+	b       2f
+
+1:
+	// store multiple at r4.
+	stmia r4!, {r5-r8}
+
+	// If we are still below bss_end, loop.
+2:
+	cmp r4, r9
+	blo 1b
+
+	// Call kernel_main
+	ldr r3, =kernel_main
+	blx r3
+
+	// halt
+halt:
+	wfe
+	b halt

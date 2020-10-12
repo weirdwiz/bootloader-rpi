@@ -14,8 +14,8 @@ sleep:
 	b sleep
 
 continue:
-	ldr x1, __bss_start__ // the __bss_start__ is defined by linker
-	ldr x2, __bss_end__
+	ldr x1, __bss_start // the __bss_start is defined by linker
+	ldr x2, __bss_end
 	ldr x3, #0
 	str x3, [x1], #8
 

@@ -22,4 +22,4 @@ continue:
 	ldr x1, _boot
 	mov sp, x1
 
-	b main
+	bl main

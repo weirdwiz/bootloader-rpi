@@ -22,4 +22,4 @@ continue:
 	ldr x1, _boot
 	mov sp, x1
 
-	bl main
+	bl main // branch to main label, defined by the linker

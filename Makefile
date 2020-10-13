@@ -1,26 +1,32 @@
 CC = aarch64-elf-gcc
 LD = aarch64-elf-ld
 OBJCPY = aarch64-elf-objcopy
-CFLAGS = -Wall -O2 -ffreestanding
-FLAGS  = -nostdlib -nostdinc -nostartfiles
 
-SRCS = $(wildcard ./src/*.c)
+SOURCE = src/
+BUILD = build/
+
+CFLAGS = -Wall -O2 -ffreestanding
+LDFLAGS  = -nostdlib -nostdinc -nostartfiles
+
+SRCS = $(patsubst $(SOURCE)%.c,$(BUILD)%.o, $(wildcard $(SOURCE)*.c))
 OBJS = $(SRCS:.c=.o)
 
-all: kernel8.img
+all: $(BUILD)kernel8.img
 
-boot.o: boot.S
-	$(CC) $(CFLAGS) $(FLAGS) -c $< -o $@
+$(BUILD)%.o: $(SOURCE)%.S $(BUILD)
+	$(CC) $(CFLAGS) $(LDFLAGS) -c $< -o $@
 
-OBJS+= boot.o
+OBJS += $(BUILD)boot.o
 
-%.o: %.c
-	$(CC) $(CFLAGS) $(FLAGS) -c $< -o $@
+$(BUILD)%.o: $(SOURCE)%.c $(BUILD)
+	$(CC) $(CFLAGS) $(LDFLAGS) -c $< -o $@
 
-kernel8.elf: link.ld $(OBJS)
-	$(LD) $(FLAGS) $(OBJS) -T $< -o  $@
+$(BUILD)kernel8.elf: $(OBJS)
+	$(LD) $(LDFLAGS) $(OBJS) -T link.ld -o  $@
 
 
-kernel8.img: kernel8.elf
+$(BUILD)kernel8.img: $(BUILD)kernel8.elf
 	$(OBJCPY) -O binary $< $@
 
+$(BUILD):
+	mkdir $@

@@ -3,9 +3,9 @@
 .globl _boot
 
 _boot:
-	mrc x5, mpidr_el1
+	mrs x5, mpidr_el1
 	and x5, x5, #3 // remove the upper bits from x5
-	cmp x5. #0
+	cmp x5, #0
 
 	beq continue
 
@@ -18,7 +18,6 @@ continue:
 	ldr x2, __bss_end
 	ldr x3, #0
 	str x3, [x1], #8
-
 	ldr x1, _boot
 	mov sp, x1
 

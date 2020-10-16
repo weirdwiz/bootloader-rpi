@@ -30,3 +30,6 @@ $(BUILD)kernel8.img: $(BUILD)kernel8.elf
 
 $(BUILD):
 	mkdir $@
+
+run:
+	qemu-system-aarch64 -M raspi3 -kernel $(BUILD)kernel8.img -d in_asm

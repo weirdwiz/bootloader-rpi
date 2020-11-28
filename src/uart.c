@@ -1,7 +1,6 @@
 /* * UART PL011 */
 
 #include "gpio.h"
-#include "uart.h"
 #include "mbox.h"
 
 /* Mapping UART registers to their corresponding address */

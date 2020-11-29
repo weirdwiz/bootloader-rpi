@@ -1,5 +1,5 @@
 enum {
-	GPIO_BASE = 0x3F000000,
+	MMIO_BASE = 0x3F000000,
 	GPFSEL0 = ((volatile unsigned int*)(MMIO_BASE+0x00200000)),
 	GPFSEL1 = ((volatile unsigned int*)(MMIO_BASE+0x00200004)),
 	GPFSEL2 = ((volatile unsigned int*)(MMIO_BASE+0x00200008)),

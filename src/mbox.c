@@ -1,5 +1,5 @@
-#include "gpio.h"
 
+#include "gpio.h"
 
 volatile unsigned int  __attribute__((aligned(16))) mbox[36];
 
@@ -14,9 +14,6 @@ volatile unsigned int  __attribute__((aligned(16))) mbox[36];
 #define MBOX_FULL       0x80000000
 #define MBOX_EMPTY      0x40000000
 
-/**
- * Make a mailbox call. Returns 0 on failure, non-zero on success
- */
 int mbox_call(unsigned char ch)
 {
     unsigned int r = (((unsigned int)((unsigned long)&mbox)&~0xF) | (ch&0xF));
@@ -29,4 +26,3 @@ int mbox_call(unsigned char ch)
     }
     return 0;
 }
-

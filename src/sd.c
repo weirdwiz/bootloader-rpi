@@ -1,28 +1,3 @@
-/*
- * Copyright (C) 2018 bzt (bztsrc@github)
- *
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use, copy,
- * modify, merge, publish, distribute, sublicense, and/or sell copies
- * of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
- * DEALINGS IN THE SOFTWARE.
- *
- */
-
 #include "gpio.h"
 #include "uart.h"
 #include "delays.h"
@@ -116,18 +91,12 @@
 
 unsigned long sd_scr[2], sd_ocr, sd_rca, sd_err, sd_hv;
 
-/**
- * Wait for data or command ready
- */
 int sd_status(unsigned int mask)
 {
     int cnt = 500000; while((*EMMC_STATUS & mask) && !(*EMMC_INTERRUPT & INT_ERROR_MASK) && cnt--) wait_msec(1);
     return (cnt <= 0 || (*EMMC_INTERRUPT & INT_ERROR_MASK)) ? SD_ERROR : SD_OK;
 }
 
-/**
- * Wait for interrupt
- */
 int sd_int(unsigned int mask)
 {
     unsigned int r, m=mask | INT_ERROR_MASK;
@@ -139,9 +108,6 @@ int sd_int(unsigned int mask)
     return 0;
 }
 
-/**
- * Send a command
- */
 int sd_cmd(unsigned int code, unsigned int arg)
 {
     int r=0;
@@ -168,14 +134,9 @@ int sd_cmd(unsigned int code, unsigned int arg)
         return r&CMD_RCA_MASK;
     }
     return r&CMD_ERRORS_MASK;
-    // make gcc happy
     return 0;
 }
 
-/**
- * read a block from sd card and return the number of bytes read
- * returns 0 on error.
- */
 int sd_readblock(unsigned int lba, unsigned char *buffer, unsigned int num)
 {
     int r,c=0,d;
@@ -207,9 +168,6 @@ int sd_readblock(unsigned int lba, unsigned char *buffer, unsigned int num)
     return sd_err!=SD_OK || c!=num? 0 : num*512;
 }
 
-/**
- * set SD clock to frequency in Hz
- */
 int sd_clk(unsigned int f)
 {
     unsigned int d,c=41666666/f,x,s=32,h=0;
@@ -245,22 +203,16 @@ int sd_clk(unsigned int f)
     return SD_OK;
 }
 
-/**
- * initialize EMMC to read SDHC card
- */
 int sd_init()
 {
     long r,cnt,ccs=0;
-    // GPIO_CD
     r=*GPFSEL4; r&=~(7<<(7*3)); *GPFSEL4=r;
     *GPPUD=2; wait_cycles(150); *GPPUDCLK1=(1<<15); wait_cycles(150); *GPPUD=0; *GPPUDCLK1=0;
     r=*GPHEN1; r|=1<<15; *GPHEN1=r;
 
-    // GPIO_CLK, GPIO_CMD
     r=*GPFSEL4; r|=(7<<(8*3))|(7<<(9*3)); *GPFSEL4=r;
     *GPPUD=2; wait_cycles(150); *GPPUDCLK1=(1<<16)|(1<<17); wait_cycles(150); *GPPUD=0; *GPPUDCLK1=0;
 
-    // GPIO_DAT0, GPIO_DAT1, GPIO_DAT2, GPIO_DAT3
     r=*GPFSEL5; r|=(7<<(0*3)) | (7<<(1*3)) | (7<<(2*3)) | (7<<(3*3)); *GPFSEL5=r;
     *GPPUD=2; wait_cycles(150);
     *GPPUDCLK1=(1<<18) | (1<<19) | (1<<20) | (1<<21);
@@ -268,7 +220,6 @@ int sd_init()
 
     sd_hv = (*EMMC_SLOTISR_VER & HOST_SPEC_NUM) >> HOST_SPEC_NUM_SHIFT;
     uart_puts("EMMC: GPIO set up\n");
-    // Reset the card.
     *EMMC_CONTROL0 = 0; *EMMC_CONTROL1 |= C1_SRST_HC;
     cnt=10000; do{wait_msec(10);} while( (*EMMC_CONTROL1 & C1_SRST_HC) && cnt-- );
     if(cnt<=0) {
@@ -278,7 +229,6 @@ int sd_init()
     uart_puts("EMMC: reset OK\n");
     *EMMC_CONTROL1 |= C1_CLK_INTLEN | C1_TOUNIT_MAX;
     wait_msec(10);
-    // Set clock to setup frequency.
     if((r=sd_clk(400000))) return r;
     *EMMC_INT_EN   = 0xffffffff;
     *EMMC_INT_MASK = 0xffffffff;
@@ -342,7 +292,6 @@ int sd_init()
         if(sd_err) return sd_err;
         *EMMC_CONTROL0 |= C0_HCTL_DWITDH;
     }
-    // add software flag
     uart_puts("EMMC: supports ");
     if(sd_scr[0] & SCR_SUPP_SET_BLKCNT)
         uart_puts("SET_BLKCNT ");

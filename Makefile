@@ -13,10 +13,18 @@ OBJS = $(SRCS:.c=.o)
 
 all: $(BUILD)kernel8.img
 
+
 $(BUILD)%.o: $(SOURCE)%.S $(BUILD)
 	$(CC) $(CFLAGS) $(LDFLAGS) -c $< -o $@
 
-OBJS += $(BUILD)boot.o
+$(BUILD)font_psf.o: $(SOURCE)font.psf
+	aarch64-elf-ld -r -b binary -o $(BUILD)font_psf.o $(SOURCE)font.psf
+
+$(BUILD)font_sfn.o: $(SOURCE)font.sfn
+	aarch64-elf-ld -r -b binary -o $(BUILD)font_sfn.o $(SOURCE)font.sfn
+
+
+OBJS += $(BUILD)boot.o $(BUILD)font_psf.o $(BUILD)font_sfn.o
 
 $(BUILD)%.o: $(SOURCE)%.c $(BUILD)
 	$(CC) $(CFLAGS) $(LDFLAGS) -c $< -o $@

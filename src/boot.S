@@ -4,7 +4,7 @@
 
 _boot:
 	mrs x5, mpidr_el1
-	and x5, x5, #3 // remove the upper bits from x5
+	and x5, x5, #3
 	cmp x5, #0
 
 	beq continue
@@ -14,11 +14,16 @@ sleep:
 	b sleep
 
 continue:
-	ldr x1, __bss_start // the __bss_start is defined by linker
-	ldr x2, __bss_end
-	ldr x3, #0
-	str x3, [x1], #8
+	ldr x1, =__bss_start
+    ldr     w2, =__bss_size
+3:  cbz     w2, 4f
+	str     xzr, [x1], #8
+	sub     w2, w2, #1
+	cbnz    w2, 3b
+
+
 	ldr x1, _boot
 	mov sp, x1
 
-	bl main // branch to main label, defined by the linker
+4:
+	bl main

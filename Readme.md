@@ -1,1 +1,1 @@
-# Bootloader for raspberry pi 3
+Send message through UART and Display image and font on the screen
